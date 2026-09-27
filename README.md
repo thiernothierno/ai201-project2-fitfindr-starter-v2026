@@ -41,7 +41,7 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
-
+This is a built in agent that decided what to do next based on what just happened. In this project we're building an agent called FitFindr that will take a request like "a vintage graphic tee under $30, size M" searches listings, works out what item would go with and writes a caption for it.
 
 ---
 
@@ -56,6 +56,98 @@
      The empty case isn't optional either — it's the thing your loop branches
      on, and if you don't decide it here you'll discover it as a crash in
      Milestone 5. -->
+
+First 4 inventories from the listings:
+
+{
+"id": "lst_001",
+"title": "Vintage Levi's 501 Jeans \u2014 Medium Wash",
+"description": "Classic 501s in a perfect medium wash. Some light fading at the knees which adds to the vintage look. No rips or stains.",
+"category": "bottoms",
+"style_tags": [
+"vintage",
+"classic",
+"denim",
+"streetwear"
+],
+"size": "W30 L30",
+"condition": "good",
+"price": 38.0,
+"colors": [
+"blue",
+"indigo"
+],
+"brand": "Levi's",
+"platform": "depop"
+}
+
+{
+"id": "lst_002",
+"title": "Y2K Baby Tee \u2014 Butterfly Print",
+"description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+"category": "tops",
+"style_tags": [
+"y2k",
+"vintage",
+"graphic tee",
+"cottagecore"
+],
+"size": "S/M",
+"condition": "excellent",
+"price": 18.0,
+"colors": [
+"white",
+"pink",
+"purple"
+],
+"brand": null,
+"platform": "depop"
+}
+
+{
+"id": "lst_003",
+"title": "Oversized Flannel Shirt \u2014 Plaid Red/Black",
+"description": "Classic oversized flannel. Great layering piece. A few tiny pulls in the fabric but nothing visible when worn.",
+"category": "tops",
+"style_tags": [
+"grunge",
+"vintage",
+"flannel",
+"streetwear",
+"layering"
+],
+"size": "XL (oversized)",
+"condition": "good",
+"price": 22.0,
+"colors": [
+"red",
+"black"
+],
+"brand": "Woolrich",
+"platform": "thredUp"
+}
+
+{
+"id": "lst_004",
+"title": "90s Track Jacket \u2014 Navy/White Stripe",
+"description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight \u2014 great for layering.",
+"category": "outerwear",
+"style_tags": [
+"90s",
+"vintage",
+"athletic",
+"streetwear"
+],
+"size": "M",
+"condition": "excellent",
+"price": 45.0,
+"colors": [
+"navy",
+"white"
+],
+"brand": "Champion",
+"platform": "poshmark"
+}
 
 ### `search_listings`
 
@@ -147,15 +239,15 @@ $ python -c "from tools import create_fit_card; ..."
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- _What I asked for:_
+- _What came back:_
+- _What I changed:_
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- _What I asked for:_
+- _What came back:_
+- _What I changed:_
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
@@ -176,12 +268,12 @@ $ python -c "from tools import create_fit_card; ..."
      into results/. Paste it here and fill in the verdicts. -->
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
+| 1.        |        |       |       |       |       |       |         |
+| 2.        |        |       |       |       |       |       |         |
+| 3.        |        |       |       |       |       |       |         |
+| 4.        |        |       |       |       |       |       |         |
+| 5.        |        |       |       |       |       |       |         |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
@@ -210,17 +302,15 @@ that produced it:
      Look for a pattern. Three misses on the same tool is one problem, not
      three. -->
 
-| # | Criterion | Target | Verdict | How I decided |
-|---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| #   | Criterion | Target | Verdict | How I decided |
+| --- | --------- | ------ | ------- | ------------- |
+| 1   |           |        |         |               |
+| 2   |           |        |         |               |
+| 3   |           |        |         |               |
+| 4   |           |        |         |               |
+| 5   |           |        |         |               |
 
 **Diagnoses**
-
-
 
 ---
 
@@ -253,8 +343,6 @@ behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
 
-
-
 ---
 
 ## The Improvement
@@ -271,19 +359,17 @@ full. -->
 ### Run Log — After
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
+| 1.        |        |       |       |       |       |       |         |
+| 2.        |        |       |       |       |       |       |         |
+| 3.        |        |       |       |       |       |       |         |
+| 4.        |        |       |       |       |       |       |         |
+| 5.        |        |       |       |       |       |       |         |
 
 **Did it help, and how do I know:**
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
-
-
 
 ---
 
@@ -292,8 +378,6 @@ full. -->
 <!-- For each criterion still missed: what you'd do, and why you stopped where
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
-
-
 
 <!-- ═════════════════════════════════════════════════════════════════════
 
