@@ -196,15 +196,15 @@ $ python -c "from tools import create_fit_card; ..."
 
 **Moment 1**
 
-- \_What I asked for:
-- _What came back:_
-- _What I changed:_
+- \_What I asked for: I asked Claude about the main role of agent.py and why it needed in this project.
+- _What came back:_ It explained the main role of agent.py as the part where all individuals functions defined in tools.py get connected into an agent.
+- \_What I changed:\_I did not changed anything because the moment agent.py is built I undertood the entire workflow as described by Claude.
 
 **Moment 2**
 
-- _What I asked for:_
-- _What came back:_
-- _What I changed:_
+- _What I asked for:_ I used Claude to help me write some functions.
+- _What came back:_ It return a function with additional steps.
+- _What I changed:_ I modified the function to suit my requirements.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
