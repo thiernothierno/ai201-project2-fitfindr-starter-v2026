@@ -22,64 +22,70 @@ the description has to say what is *in* the list.
 
 import config  # noqa: F401 — you'll use this in search_listings
 from generate import generate
-from utils.data_loader import load_listings
+from utils.data_loader import load_listings, get_example_wardrobe
+
+
+
+
+
 
 
 # ── Tool 1: search_listings ───────────────────────────────────────────────────
+"""
+TODO: 
+    1. Load every listing with load_listings(). 
+    2. Filter by max_price and by size, when each is provided. 
+    3. Score what's left by keyword overlap with description. 
+    4. Drop anything scoring zero. 
+    5. Sort by score, highest first, and return the listing dicts — at most config.SEARCH_RESULT_LIMIT of them. 
+    Test it from a terminal before you move on: 
+    python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
+
+"""
 
 def search_listings(
     description: str,
     size: str | None = None,
     max_price: float | None = None,
 ) -> list[dict]:
-    """
-    Search the listings data for items matching a description, and optionally a
-    size and a price ceiling.
+    listings = load_listings()
 
-    This is the tool that doesn't call the model, which makes it the easiest one
-    to test and the one to move onto MCP in unit 4.
+    # Filter
+    filtered = []
 
-    Args:
-        description: keywords describing what the user wants
-                     (e.g. "vintage graphic tee").
-        size:        a size string to filter by, or None to skip size filtering.
-                     Match case-insensitively — "M" should match "S/M".
+    for listing in listings:
+        if max_price is not None and listing["price"] > max_price:
+            continue
 
-                     ⚠️ Read the sizes in the data before you reach for a plain
-                     substring test. `"s" in "us 9"` is True, and so is
-                     `"l" in "xl"`. A filter that returns shoes when someone
-                     asked for a small top reads like a broken search, and it
-                     will quietly cost you in unit 4 when you test criterion 1.
-                     What counts as a size match is part of your spec — decide
-                     it and write it into your Tool Inventory.
-        max_price:   maximum price, inclusive, or None to skip price filtering.
+        if size is not None and listing["size"] != size:
+            continue
 
-    Returns:
-        A list of matching listing dicts, best match first.
-        **Returns an empty list when nothing matches — an empty list, not None,
-        and not an exception.** Your loop branches on this.
+        filtered.append(listing)
 
-    Each listing dict has these fields:
-        id, title, description, category, style_tags (list), size,
-        condition, price (float), colors (list), brand (str or None), platform
+    # Score by keyword overlap
+    query_words = set(description.lower().split())
+    results = []
 
-    Note that `brand` is None for most listings. That is deliberate and
-    realistic — thrift listings often have no brand. If something you write
-    assumes a brand is always there, you will find out in unit 4.
+    for listing in filtered:
+        description_words = set(listing["description"].lower().split())
+        score = len(query_words & description_words)
 
-    TODO:
-        1. Load every listing with load_listings().
-        2. Filter by max_price and by size, when each is provided.
-        3. Score what's left by keyword overlap with `description`.
-        4. Drop anything scoring zero.
-        5. Sort by score, highest first, and return the listing dicts —
-           at most config.SEARCH_RESULT_LIMIT of them.
+        if score > 0:
+            results.append((score, listing))
 
-    Test it from a terminal before you move on:
-        python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
-    """
-    # TODO: replace this with your implementation
-    return []
+    # Highest score first
+    results.sort(key=lambda item: item[0], reverse=True)
+
+    # Return listing dictionaries only
+    # results[:config.SEARCH_RESULT_LIMIT] take the first N results, where N is SEARCH_RESULT_LIMIT
+    return [
+        listing
+        for score, listing in results[:config.SEARCH_RESULT_LIMIT]
+    ]
+print(search_listings('graphic tee', max_price=15))
+
+# print(search_listings("Classic 501s in a perfect medium wash. Some light fading at the knees which adds to the vintage look. No rips or stains.", 
+#                       size="W30 L30", max_price=38.00))
 
 
 # ── Tool 2: suggest_outfit ────────────────────────────────────────────────────
@@ -112,9 +118,76 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    """
+    Given a thrifted item and the user's wardrobe, suggest one or two outfits.
+    """
 
+    items = wardrobe.get("items", [])
+
+    # Empty wardrobe: give general styling advice
+    if not items:
+        prompt = f"""
+        You are a helpful personal stylist.
+
+        The user is considering this thrifted item:
+
+        Name: {new_item.get("name", "")}
+        Category: {new_item.get("category", "")}
+        Colors: {", ".join(new_item.get("colors", []))}
+        Style tags: {", ".join(new_item.get("style_tags", []))}
+        Notes: {new_item.get("notes", "")}
+
+        The user does not have any wardrobe items entered yet.
+        Suggest one or two ways they could style this item in general.
+        Mention suitable types of tops, bottoms, shoes, and accessories.
+        Do not assume they own any specific pieces.
+
+        Give practical, concise styling advice.
+        """
+
+        return generate(prompt)
+
+    # Non-empty wardrobe: format the user's existing items
+    wardrobe_items = []
+
+    for item in items:
+        wardrobe_items.append(
+            f"- {item.get('name', '')} "
+            f"(category: {item.get('category', '')}, "
+            f"colors: {', '.join(item.get('colors', []))}, "
+            f"style: {', '.join(item.get('style_tags', []))}, "
+            f"notes: {item.get('notes', '')})"
+        )
+
+    wardrobe_text = "\n".join(wardrobe_items)
+
+    prompt = f"""
+    You are a helpful personal stylist.
+
+    The user is considering this thrifted item:
+
+    Name: {new_item.get("name", "")}
+    Category: {new_item.get("category", "")}
+    Colors: {", ".join(new_item.get("colors", []))}
+    Style tags: {", ".join(new_item.get("style_tags", []))}
+    Notes: {new_item.get("notes", "")}
+
+    Here is the user's existing wardrobe:
+
+    {wardrobe_text}
+
+    Suggest one or two complete outfits that combine the new item with
+    pieces the user already owns.
+
+    Use the exact names of wardrobe pieces when recommending them.
+    Do not invent wardrobe items that are not listed above.
+
+    Keep the suggestions practical and concise.
+    """
+
+    return generate(prompt)
+
+# print(suggest_outfit(load_listings()[0], get_example_wardrobe()))
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
 
@@ -153,4 +226,27 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
     # TODO: replace this with your implementation
-    return ""
+    # 1. Handle missing outfit
+    if not outfit or not outfit.strip():
+        return "No outfit suggestion is available for this item yet."
+
+    # 2. Build prompt using the item AND the outfit
+    prompt = f"""
+    Write a short caption for this thrift find.
+
+    Item: {new_item.get("name", "")}
+    Price: {new_item.get("price", "")}
+    Platform: {new_item.get("platform", "")}
+
+    Suggested outfit:
+    {outfit}
+
+    Write 2-4 sentences.
+    Mention the item, price, and platform once each.
+    Make it sound like a real social media post and describe the vibe.
+    """
+
+        # 3. Ask the model
+    return generate(prompt)
+
+# print(create_fit_card('jeans and white sneakers', load_listings()[0]))
