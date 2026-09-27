@@ -106,12 +106,16 @@ This is a built in agent that decided what to do next based on what just happene
      function have to be real. -->
 
 **Branch rule:**
+This is the part where individual functions defined in tools.py get connected into an agent workflow.
 
 **Where it lives:** `agent.py::run_agent`
 
 **How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+I used regex to parse the query.
 
 **What moves through the session:** <!-- which fields, in what order -->
+
+user_query --> parse_query ---> search_listings ---> select_items --> suggest_outfit --> create_fit_card --> return session.
 
 ---
 
@@ -124,10 +128,36 @@ This is a built in agent that decided what to do next based on what just happene
 
 **One full query**
 
-```
-$ python app.py ask '...'
+python app.py ask "Corduroy Wide-Leg Pants — Rust"
+[{'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}]
 
-```
+Found: 90s Track Jacket — Navy/White Stripe — $45.0 on poshmark
+
+Outfit: Here are two complete outfit suggestions using your new 90s athletic outerwear piece and items from your wardrobe:
+
+**Outfit 1: 90s Streetwear Casual**
+
+- **Outerwear:** The new navy and white thrifted outerwear piece
+- **Top:** White ribbed tank top
+- **Bottoms:** Baggy straight-leg jeans, dark wash
+- **Shoes:** Chunky white sneakers
+- **Accessories:** Black crossbody bag
+
+_Why it works:_ This leans directly into the 90s athletic and streetwear vibe of your new piece. Pairing the jacket with the fitted white tank and high-waisted baggy jeans creates a great balance of proportions, finished cleanly with chunky sneakers.
+
+**Outfit 2: High-Contrast Sporty Casual**
+
+- **Outerwear:** The new navy and white thrifted outerwear piece
+- **Top:** Oversized grey crewneck sweatshirt (worn layered underneath, if it fits comfortably) OR just keep it simple with the white ribbed tank top
+- **Bottoms:** Wide-leg khaki trousers
+- **Shoes:** Chunky white sneakers
+- **Accessories:** Black crossbody bag
+
+_Why it works:_ Mixing the sporty navy and white outerwear with tailored khaki trousers gives a cool, effortless high-low contrast. The white sneakers tie the whole look together while keeping it grounded in streetwear.
+
+Fit card: Scored this gorgeous 90s athletic outerwear piece on Poshmark for just $45, and I am obsessed with the retro navy and white colorway! It has that effortless streetwear vibe that instantly elevates a basic tank and baggy jeans. Can't wait to style this sporty gem all season long! ✨👟
+
+2 model calls this session, 803 prompt + 350 output tokens
 
 **The three tools, tested one at a time**
 
@@ -136,15 +166,22 @@ $ python -c "from tools import search_listings; print(search_listings('graphic t
 
 ```
 
+[{'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}]
+[{'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_006', 'title': 'Graphic Tee — 2003 Tour Bootleg Style', 'description': 'Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.', 'category': 'tops', 'style_tags': ['graphic tee', 'vintage', 'grunge', 'streetwear', 'band tee'], 'size': 'L', 'condition': 'good', 'price': 24.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_015', 'title': 'Vintage Graphic Hoodie — Faded Black', 'description': 'Faded black pullover hoodie with barely-visible vintage graphic on the chest. Cozy interior. Some pilling but adds to the worn-in look.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'graphic', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 26.0, 'colors': ['black', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_033', 'title': 'Vintage Band Tee — Faded Grey', 'description': 'Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'band tee', 'graphic tee', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 19.0, 'colors': ['grey', 'charcoal'], 'brand': None, 'platform': 'depop'}]
+
 ```
 $ python -c "from tools import suggest_outfit; ..."
 
 ```
 
+[{'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}]
+
 ```
 $ python -c "from tools import create_fit_card; ..."
 
 ```
+
+[{'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}]
 
 ---
 
@@ -159,7 +196,7 @@ $ python -c "from tools import create_fit_card; ..."
 
 **Moment 1**
 
-- _What I asked for:_
+- \_What I asked for:
 - _What came back:_
 - _What I changed:_
 

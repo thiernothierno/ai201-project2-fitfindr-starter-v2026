@@ -15,8 +15,10 @@ Build and test your three tools in `tools.py` first. Then come here.
 
 import config
 import trace
-# from tools import search_listings, suggest_outfit, create_fit_card
+import re
+from tools import search_listings, suggest_outfit, create_fit_card
 from generate import ModelUnavailable
+
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -50,6 +52,7 @@ def new_session(query: str, wardrobe: dict) -> dict:
 # ── planning loop ─────────────────────────────────────────────────────────────
 
 def run_agent(query: str, wardrobe: dict) -> dict:
+
     """
     Run the loop once and return the finished session.
 
@@ -105,11 +108,82 @@ def run_agent(query: str, wardrobe: dict) -> dict:
       • A handler for ModelUnavailable, so a bad key produces a message rather
         than a stack trace. The import is already at the top of this file.
     """
+    # Start the session
     session = new_session(query, wardrobe)
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
-    return session
+    # Define a variable count that will count the number of iterations.
+    count = 0
+
+    while True:
+        count += 1
+
+        # Safety mechanism for the loop not end up in infinit loop. 
+        trace.check_iterations(count)
+
+        # Parse the query
+        size_match = re.search(
+            r"\bsize\s+([A-Za-z0-9]+)",
+            query,
+            re.IGNORECASE,
+        )
+
+        price_match = re.search(
+            r"\b(?:under|below|less than)\s*\$?(\d+(?:\.\d+)?)",
+            query,
+            re.IGNORECASE,
+        )
+
+        size = size_match.group(1) if size_match else None
+        max_price = float(price_match.group(1)) if price_match else None
+
+        description = query
+
+        if size_match:
+            description = description.replace(size_match.group(0), "")
+
+        if price_match:
+            description = description.replace(price_match.group(0), "")
+
+        description = description.strip(" ,")
+
+        session["parsed"] = {
+            "description": description,
+            "size": size,
+            "max_price": max_price,
+        }
+
+        # Search listings
+        search_results = search_listings(
+            description,
+            max_price=max_price,
+            size=size,
+        )
+
+        session["search_results"] = search_results
+
+        # Branch: no results
+        if not search_results:
+            session["error"] = (
+                "No matching listings were found. "
+                "Try changing the size, increasing the maximum price, "
+                "or using broader search terms."
+            )
+            return session
+
+        # Select first result
+        selected_item = search_results[0]
+        session["selected_item"] = selected_item
+
+        # Suggest outfit
+        outfit = suggest_outfit(selected_item, wardrobe)
+        session["outfit_suggestion"] = outfit
+
+        # Create fit card
+        fit_card = create_fit_card(outfit, selected_item)
+        session["fit_card"] = fit_card
+
+        return session
+    
 
 
 # ── running it directly ───────────────────────────────────────────────────────

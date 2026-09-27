@@ -82,7 +82,7 @@ def search_listings(
         listing
         for score, listing in results[:config.SEARCH_RESULT_LIMIT]
     ]
-print(search_listings('graphic tee', max_price=15))
+# print(search_listings('graphic tee', max_price=15))
 
 # print(search_listings("Classic 501s in a perfect medium wash. Some light fading at the knees which adds to the vintage look. No rips or stains.", 
 #                       size="W30 L30", max_price=38.00))
@@ -249,4 +249,4 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
         # 3. Ask the model
     return generate(prompt)
 
-# print(create_fit_card('jeans and white sneakers', load_listings()[0]))
+print(create_fit_card('jeans and white sneakers', load_listings()[0]))
