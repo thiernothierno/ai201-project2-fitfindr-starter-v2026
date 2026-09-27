@@ -57,118 +57,38 @@ This is a built in agent that decided what to do next based on what just happene
      on, and if you don't decide it here you'll discover it as a crash in
      Milestone 5. -->
 
-First 4 inventories from the listings:
-
-{
-"id": "lst_001",
-"title": "Vintage Levi's 501 Jeans \u2014 Medium Wash",
-"description": "Classic 501s in a perfect medium wash. Some light fading at the knees which adds to the vintage look. No rips or stains.",
-"category": "bottoms",
-"style_tags": [
-"vintage",
-"classic",
-"denim",
-"streetwear"
-],
-"size": "W30 L30",
-"condition": "good",
-"price": 38.0,
-"colors": [
-"blue",
-"indigo"
-],
-"brand": "Levi's",
-"platform": "depop"
-}
-
-{
-"id": "lst_002",
-"title": "Y2K Baby Tee \u2014 Butterfly Print",
-"description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
-"category": "tops",
-"style_tags": [
-"y2k",
-"vintage",
-"graphic tee",
-"cottagecore"
-],
-"size": "S/M",
-"condition": "excellent",
-"price": 18.0,
-"colors": [
-"white",
-"pink",
-"purple"
-],
-"brand": null,
-"platform": "depop"
-}
-
-{
-"id": "lst_003",
-"title": "Oversized Flannel Shirt \u2014 Plaid Red/Black",
-"description": "Classic oversized flannel. Great layering piece. A few tiny pulls in the fabric but nothing visible when worn.",
-"category": "tops",
-"style_tags": [
-"grunge",
-"vintage",
-"flannel",
-"streetwear",
-"layering"
-],
-"size": "XL (oversized)",
-"condition": "good",
-"price": 22.0,
-"colors": [
-"red",
-"black"
-],
-"brand": "Woolrich",
-"platform": "thredUp"
-}
-
-{
-"id": "lst_004",
-"title": "90s Track Jacket \u2014 Navy/White Stripe",
-"description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight \u2014 great for layering.",
-"category": "outerwear",
-"style_tags": [
-"90s",
-"vintage",
-"athletic",
-"streetwear"
-],
-"size": "M",
-"condition": "excellent",
-"price": 45.0,
-"colors": [
-"navy",
-"white"
-],
-"brand": "Champion",
-"platform": "poshmark"
-}
-
 ### `search_listings`
 
 - **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
+  Search the listings data for items matching a description, and optionally a size and a price ceiling.
+- **Inputs:**
+  It takes a description(str), size(str) and a max_price(float) as inputs.
 - **Returns:**
+  It return a best match in a form of a dictionary that containt an id, title, description, category, size, style_tags, condition, price, color, brand, and platform name
 - **When it has nothing:**
+  When their is no match it return an empty list.
 
 ### `suggest_outfit`
 
 - **What it does:**
+  It provide one or two suggestions when given a thrifted item and a user's wardrobe.
 - **Inputs:**
+  Takes listing dic and a wardrobe as inputs.
 - **Returns:**
+  It return a non-empty string with outfit suggestions.
 - **When it has nothing:**
+  With an empty wardrobe, it return a general styling advice rather than raising or returning.
 
 ### `create_fit_card`
 
 - **What it does:**
+  Write a short caption someone would actually post about the find.
 - **Inputs:**
+  It takes an outfit and a new_item as inputs.
 - **Returns:**
+  Return two to four sentence caption.
 - **When it has nothing:**
+  If outfit is empty or whitespace, return a descriptive message rathe than raising.
 
 ---
 
