@@ -39,8 +39,6 @@
 
 ## What This Does
 
-<!-- Three or four sentences: what a user asks for, and what they get back. -->
-
 This is a built in agent that decided what to do next based on what just happened. In this project we're building an agent called FitFindr that will take a request like "a vintage graphic tee under $30, size M" searches listings, works out what item would go with and writes a caption for it.
 
 ---

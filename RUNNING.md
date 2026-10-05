@@ -4,7 +4,7 @@ Everything about how the starter works and how to use it.
 
 ---
 
-## Before your first class
+## Before your first class 
 
 Setup happens **before class**. The [environment setup page](../pages/ide_setup)
 has the per-operating-system commands and the exact versions.

@@ -1,6 +1,6 @@
 # Acceptance criteria — FitFindr
 
-Five criteria that say what "working" means for this agent, written in unit 3
+Five criteria that say what "working" means for this agent, written in unit 3 
 **before** any results existed.
 
 An acceptance criterion names a target: a number, a count, a rate, or something
