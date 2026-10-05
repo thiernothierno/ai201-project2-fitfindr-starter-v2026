@@ -222,13 +222,13 @@ $ python -c "from tools import create_fit_card; ..."
      `python run_eval.py --label before` runs everything and writes the table
      into results/. Paste it here and fill in the verdicts. -->
 
-| Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
-| 1.        |        |       |       |       |       |       |         |
-| 2.        |        |       |       |       |       |       |         |
-| 3.        |        |       |       |       |       |       |         |
-| 4.        |        |       |       |       |       |       |         |
-| 5.        |        |       |       |       |       |       |         |
+| Criterion                                           | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
+| --------------------------------------------------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
+| 1. A matching query completes all three tools       | 4/5    |       |       |       |       |       |         |
+| 2. An impossible query stops before the second tool | 5/5    |       |       |       |       |       |         |
+| 3. Item in session matches item passed on           | 5/5    |       |       |       |       |       |         |
+| 4. There is a variation of what fit card return     | 5/5    |       |       |       |       |       |         |
+| 5. The ceiling price is always respected.           | 5/5    |       |       |       |       |       |         |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
