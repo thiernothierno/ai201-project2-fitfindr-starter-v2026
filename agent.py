@@ -18,7 +18,7 @@ import trace
 import re
 from tools import search_listings, suggest_outfit, create_fit_card
 from generate import ModelUnavailable
-
+from mcp_client import call_tool, MCPError
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -152,12 +152,29 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             "max_price": max_price,
         }
 
-        # Search listings
-        search_results = search_listings(
-            description,
-            max_price=max_price,
-            size=size,
-        )
+        # # Search listings
+        # search_results = search_listings(
+        #     description,
+        #     max_price=max_price,
+        #     size=size,
+        # )
+
+        # session["search_results"] = search_results
+                # Search listings — over MCP (unit 4, Milestone 1) instead of the
+        # direct call. Arguments go by NAME now, and the names have to match
+        # the registration in mcp_server.py exactly.
+        #
+        # The direct call this replaced, kept for comparison:
+        #     search_results = search_listings(description, size, max_price)
+        try:
+            search_results = call_tool("search_listings", {
+                "description": description,
+                "size": size,
+                "max_price": max_price,
+            })
+        except MCPError as exc:
+            session["error"] = f"Couldn't reach the listings server — {exc}"
+            return session
 
         session["search_results"] = search_results
 

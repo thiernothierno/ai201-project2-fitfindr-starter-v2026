@@ -249,4 +249,20 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
         # 3. Ask the model
     return generate(prompt)
 
-print(create_fit_card('jeans and white sneakers', load_listings()[0]))
+
+# ── scratch testing ───────────────────────────────────────────────────────────
+# Anything that CALLS a tool belongs in here, never at module level. Module-level
+# code runs on every import — including the import inside mcp_server.py, which
+# would fire a model call on every single MCP request and print to stdout, the
+# channel MCP uses for the protocol itself.
+#
+#     python tools.py        runs the checks below
+
+if __name__ == "__main__":
+    listing = load_listings()[0]
+    print("search_listings('graphic tee', max_price=30):")
+    for row in search_listings("graphic tee", max_price=30):
+        print(f"  {row['id']}  ${row['price']:>6.2f}  {row['title']}")
+
+    print("\ncreate_fit_card:")
+    print(" ", create_fit_card("jeans and white sneakers", listing))
