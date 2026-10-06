@@ -222,13 +222,13 @@ $ python -c "from tools import create_fit_card; ..."
      `python run_eval.py --label before` runs everything and writes the table
      into results/. Paste it here and fill in the verdicts. -->
 
-| Criterion                                           | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-| --------------------------------------------------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
-| 1. A matching query completes all three tools       | 4/5    |       |       |       |       |       |         |
-| 2. An impossible query stops before the second tool | 5/5    |       |       |       |       |       |         |
-| 3. Item in session matches item passed on           | 5/5    |       |       |       |       |       |         |
-| 4. There is a variation of what fit card return     | 5/5    |       |       |       |       |       |         |
-| 5. The ceiling price is always respected.           | 5/5    |       |       |       |       |       |         |
+| Criterion                                           | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict   |
+| --------------------------------------------------- | ------ | ----- | ----- | ----- | ----- | ----- | --------- |
+| 1. A matching query completes all three tools       | 4/5    | PASS  | PASS  | PASS  | PASS  | PASS  | MET (5/5) |
+| 2. An impossible query stops before the second tool | 5/5    | PASS  | PASS  | PASS  | PASS  | PASS  | MET (5/5) |
+| 3. Item in session matches item passed on           | 5/5    | PASS  | PASS  | PASS  | PASS  | PASS  | MET (5/5) |
+| 4. There is a variation of what fit card return     | 5/5    | PASS  | PASS  | PASS  | PASS  | PASS  | MET (5/5) |
+| 5. The ceiling price is always respected.           | 5/5    | PASS  | PASS  | PASS  | PASS  | PASS  | MET (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
@@ -257,17 +257,25 @@ that produced it:
      Look for a pattern. Three misses on the same tool is one problem, not
      three. -->
 
-| #   | Criterion | Target | Verdict | How I decided |
-| --- | --------- | ------ | ------- | ------------- |
-| 1   |           |        |         |               |
-| 2   |           |        |         |               |
-| 3   |           |        |         |               |
-| 4   |           |        |         |               |
-| 5   |           |        |         |               |
+| #   | Criterion                                         | Target | Verdict       | How I decided                                                                                                                 |
+| --- | ------------------------------------------------- | ------ | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 1   | A matching query completes all three tools        | 4/5    | **MET (5/5)** | All five: `stopped early: no`, `search_results: 7`, non-null `selected_item`, non-empty outfit and fit card.                  |
+| 2   | An impossible query stops before the second tool  | 5/5    | **MET (5/5)** | All five: `search_results: 0`, `selected_item: (none)`, `fit_card: None`. 20 model calls / 15 runs confirms these spent none. |
+| 3   | Item in session matches item passed on            | 5/5    | **MET (5/5)** | Same `selected_item` all five tries; every fit card names its price ($26) and platform (Depop). Checked by string search.     |
+| 4   | There is a variation in what the fit card returns | 5/5    | **MET (5/5)** | Five distinct strings (271/293/285/203/185 chars), set-comparison verified. Caching off, so five real generations.            |
+| 5   | The price ceiling is always respected             | 5/5    | **MET (5/5)** | Selected items $26 ≤ $30 and $42 ≤ $50. Re-ran `search_listings`: every returned row under cap (max $26/$30, $45/$50).        |
 
 **Diagnoses**
 
----
+No criterion missed, so there is no failure to locate in a tool, the branch, the session, or the model. The pattern worth recording is instead about the criteria themselves.
+
+Four of the five never reach the model. Parsing, searching, selection, and the price filter are plain Python over a fixed JSON file, so `search_results` and `selected_item` are byte-identical across all five tries of every scenario. Those rows were decided before `generate()` was called and would pass fifty tries as readily as five. The fifth criterion depends on the model but only asks that the cards differ, which temperature 0.9 with caching off makes near-certain. So an all-MET table shows the loop is deterministic where it should be and varies where it should — it does not show the criteria are strict enough to catch a real fault.
+
+Evidence that they aren't: the run contains a defect no criterion was written to detect. The query `vintage graphic tee under $30` selected a **hoodie** (`lst_015`, Vintage Graphic Hoodie), because `search_listings` scores the seller `description` field and rival listings use the phrase "graphic tee" in their prose. Four of the five captions then hedge, calling it a "top" or "gem" rather than a hoodie. Criterion 1 passes because all three tools ran; criterion 3 passes because the session is internally consistent; criterion 5 passes because $26 is under the ceiling. The item is simply the wrong category, and nothing I wrote asks about category.
+
+Criterion 3 is also close to tautological as worded: `selected_item` and the argument passed to `suggest_outfit` are the same variable, so it can only fail if I introduce a bug rather than catching one that exists. Tightening it to "the fit card names the selected item's price and platform" — which is what I actually measured — makes it a test that could fail.
+
+## _Baseline caveat: `results/run_2026-10-05_1733_before.md` was produced before the MCP swap and the trace calls were in place, so it is a true "before" run against the direct `search_listings` call._
 
 ## Loop Trace
 
@@ -282,16 +290,34 @@ that produced it:
      anyone will ever find that out. -->
 
 **Happy path**
-
-```
-
-```
+[1] parse_query
+in: vintage graphic tee under $30, size M
+out: description='vintage graphic tee', size=M, max_price=30.0
+→ regex on 'size X' and 'under $N'
+[2] search_listings (via MCP)
+in: description='vintage graphic tee', size=M, max_price=30.0
+out: 1 items: Vintage Knit Vest — Argyle Brown/Cream
+[3] select_item
+in: 1 candidates
+out: Vintage Knit Vest — Argyle Brown/Cream ($25.0, thredUp)
+→ first result — highest keyword score
+[4] suggest_outfit
+in: item='Vintage Knit Vest — Argyle Brown/Cream', wardrobe_items=10
+out: Here are two complete outfits combining your new thrifted knit top with pieces from your existing wardrobe: \*…
+[5] create_fit_card
+in: item='Vintage Knit Vest — Argyle Brown/Cream', outfit='Here are two complete outfits combining '…
+out: Scored this gorgeous vintage knit top on thredUp for just $25, and I am already obsessed with the rich earth t…
 
 **Empty search**
-
-```
-
-```
+[1] parse_query
+in:  
+ out: description='', size=None, max_price=None
+→ regex on 'size X' and 'under $N'
+[2] search_listings (via MCP)
+in: description='', size=None, max_price=None
+out: [] (empty)
+[3] branch: search returned nothing
+→ stopping — suggest_outfit and create_fit_card will NOT run
 
 **On the MCP move:** <!-- what changed in your code, and whether anything
 behaved differently afterwards. If the rewire didn't work, say exactly where it

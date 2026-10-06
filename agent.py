@@ -111,6 +111,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     # Start the session
     session = new_session(query, wardrobe)
 
+    # Clear the trace so each run stands alone. app.py and run_eval.py also
+    # call this, but `python agent.py` runs two queries back to back — without
+    # it, the second run's get_trace() would still carry the first run's lines.
+    trace.start_trace()
+
     # Define a variable count that will count the number of iterations.
     count = 0
 
@@ -152,17 +157,51 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             "max_price": max_price,
         }
 
-        # Search listings
-        search_results = search_listings(
-            description,
-            max_price=max_price,
-            size=size,
+        # inputs is passed as a STRING, not a dict: trace._short() prints only
+        # the KEYS of a dict, so {"size": "M"} would render as "dict with keys:
+        # size" and the value would be lost.
+        trace.step(
+            "parse_query",
+            inputs=query,
+            returned=f"description={description!r}, size={size}, max_price={max_price}",
+            note="regex on 'size X' and 'under $N'",
         )
+
+        # Search listings — over MCP (unit 4, Milestone 1) instead of the
+        # direct call. Arguments go by NAME now, and the names have to match
+        # the registration in mcp_server.py exactly.
+        #
+        # The direct call this replaced, kept for comparison:
+        #     search_results = search_listings(description, size, max_price)
+        try:
+            search_results = call_tool("search_listings", {
+                "description": description,
+                "size": size,
+                "max_price": max_price,
+            })
+        except MCPError as exc:
+            trace.step("search_listings (via MCP)", note=f"server unreachable: {exc}")
+            session["error"] = f"Couldn't reach the listings server — {exc}"
+            return session
 
         session["search_results"] = search_results
 
+        # returned is passed RAW — _short() renders a list of listings as
+        # "10 items: <titles>" and an empty list as "[] (empty)".
+        trace.step(
+            "search_listings (via MCP)",
+            inputs=f"description={description!r}, size={size}, max_price={max_price}",
+            returned=search_results,
+        )
+
         # Branch: no results
         if not search_results:
+            # The graded decision. Recording it is what turns "no fit card was
+            # produced" into evidence that the branch deliberately stopped.
+            trace.step(
+                "branch: search returned nothing",
+                note="stopping — suggest_outfit and create_fit_card will NOT run",
+            )
             session["error"] = (
                 "No matching listings were found. "
                 "Try changing the size, increasing the maximum price, "
@@ -174,13 +213,33 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         selected_item = search_results[0]
         session["selected_item"] = selected_item
 
+        trace.step(
+            "select_item",
+            inputs=f"{len(search_results)} candidates",
+            returned=selected_item,
+            note="first result — highest keyword score",
+        )
+
         # Suggest outfit
         outfit = suggest_outfit(selected_item, wardrobe)
         session["outfit_suggestion"] = outfit
 
+        trace.step(
+            "suggest_outfit",
+            inputs=f"item={selected_item.get('title')!r}, "
+                   f"wardrobe_items={len(wardrobe.get('items', []))}",
+            returned=outfit,
+        )
+
         # Create fit card
         fit_card = create_fit_card(outfit, selected_item)
         session["fit_card"] = fit_card
+
+        trace.step(
+            "create_fit_card",
+            inputs=f"item={selected_item.get('title')!r}, outfit={outfit[:40]!r}…",
+            returned=fit_card,
+        )
 
         return session
     
